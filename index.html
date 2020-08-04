@@ -1,32 +1,32 @@
 <!DOCTYPE html>
-<!-- saved from url=(0056)http://physics.bu.edu/~duffy/HTML5/emission_spectra.html -->
 <html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  <!-- Global site tag (gtag.js) - Google Analytics -->
-<!-- <script type="text/javascript" async="" src="./Emission Spectra_files/analytics.js"></script><script async="" src="./Emission Spectra_files/js"></script> -->
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'UA-8175315-30');
-</script>
 
   
-  <title>Emission Spectra</title>
+  <title>Spectrum Explorer</title>
 </head>
 
 <body style="font-family:sans-serif; font-size:15px; width:700px; margin-left:auto; margin-right:auto;">
 <center>
 <h3>Emission Spectra</h3>
     <canvas id="myCanvas" width="700" height="440"></canvas>
-    <div id="spectraButtons">Show emission spectrum for:
+    <div id="emissionCheckboxes">Show emission spectrum for:
         <ul>
-            <li><input type="checkbox" id="Hspectra" value="Hydrogen" onclick="elementChoice = 0; drawSpectra();"> Hydrogen</li>
-            <li><input type="checkbox" id="Hespectra" value="Helium" onclick="elementChoice = 1; drawSpectra();">Helium</li>
-            <li><input type="checkbox" id="Lispectra" value="Lithium" onclick="elementChoice = 4; drawSpectra();">Lithium</li>
-            <li><input type="checkbox" id="Naspectra" value="Sodium" onclick="elementChoice = 2; drawSpectra();">Sodium</li>
-            <li><input type="checkbox" id="Hgspectra" value="Mercury" onclick="elementChoice = 3; drawSpectra();">Mercury</li>
-            <li><input type="checkbox" id="Nespectra" value="Neon" onclick="elementChoice = 5; drawSpectra();">Neon</li>
+            <li><input type="checkbox" id="Hspectra" value="Hydrogen" onclick="elementChoice = 0; drawEmission();"> Hydrogen</li>
+            <li><input type="checkbox" id="Hespectra" value="Helium" onclick="elementChoice = 1; drawEmission();">Helium</li>
+            <li><input type="checkbox" id="Lispectra" value="Lithium" onclick="elementChoice = 4; drawEmission();">Lithium</li>
+            <li><input type="checkbox" id="Naspectra" value="Sodium" onclick="elementChoice = 2; drawEmission();">Sodium</li>
+            <li><input type="checkbox" id="Hgspectra" value="Mercury" onclick="elementChoice = 3; drawEmission();">Mercury</li>
+            <li><input type="checkbox" id="Nespectra" value="Neon" onclick="elementChoice = 5; drawEmission();">Neon</li>
+        </ul>
+   </div>
+    <div id="emissionCheckboxes">Show absorption spectrum for:
+        <ul>
+            <li><input type="checkbox" id="Hspectra" value="Hydrogen" onclick="elementChoice = 0; drawAbsorption();"> Hydrogen</li>
+            <li><input type="checkbox" id="Hespectra" value="Helium" onclick="elementChoice = 1; drawAbsorption();">Helium</li>
+            <li><input type="checkbox" id="Lispectra" value="Lithium" onclick="elementChoice = 4; drawAbsorption();">Lithium</li>
+            <li><input type="checkbox" id="Naspectra" value="Sodium" onclick="elementChoice = 2; drawAbsorption();">Sodium</li>
+            <li><input type="checkbox" id="Hgspectra" value="Mercury" onclick="elementChoice = 3; drawAbsorption();">Mercury</li>
+            <li><input type="checkbox" id="Nespectra" value="Neon" onclick="elementChoice = 5; drawAbsorption();">Neon</li>
         </ul>
    </div>
 
@@ -34,134 +34,68 @@
 </center>
 
   <script>
-
-// Simulation first posted on 2-08-2017
-
-
-
+      // Original code from Andrew Duffy
       var canvas = document.getElementById("myCanvas");
       var context = canvas.getContext("2d");
       var xBase = 50;     // for the drawing
       var yBase = 350;     // for the drawing
       var lineColor = 'red';
 
+      // define global variables
       var elementChoice = 0;
-      var onH = 0;
-      var onHe = 0;
-      var onNa = 0;
-      var onHg = 0;
-      var onLi = 0;
-      var onNe = 0;
+      var spectrumData = new Array();
+      var emissionOn = new Array();
+      var absorptionOn = new Array();
+ 
+      initializeSpectrumData();
+      initializeDisplay();
+      
+      function initializeSpectrumData(){
+          var nElements = 0;
+                              
+          var i = 0;
+          spectrumData[i] = {};
+          spectrumData[i].name = "Hydrogen";
+          spectrumData[i].wavelength = [410.2, 434.0, 486.1, 656.3];
+          
+          i = 1;
+          spectrumData[i] = {};
+          spectrumData[i].name = "Helium";
+          spectrumData[i].wavelength = [447.1, 471.3, 492.2, 501.6, 587.6, 667.8];
 
-      var nSpectra = 3;  // number of spectra
-      var nLines = new Array(nSpectra);
-      nLines[0] = {};
-      nLines[0].n = 4;   // number of wavelengths in hydrogen spectrum
-      nLines[1] = {};
-      nLines[1].n = 6;   // number of wavelengths in helium spectrum
-      nLines[2] = {};
-      nLines[2].n = 5;   // number of wavelengths in helium spectrum
-      nLines[3] = {};
-      nLines[3].n = 5;   // number of wavelengths in mercury spectrum
-      nLines[4] = {};
-      nLines[4].n = 5;   // number of wavelengths in lithium spectrum
-      nLines[5] = {};
-      nLines[5].n = 14;   // number of wavelengths in neon spectrum
+          i = 2;
+          spectrumData[i] = {};
+          spectrumData[i].name = "Sodium";
+          spectrumData[i].wavelength = [439.3, 445.5, 449.1, 589, 589.6];
 
-      var hydrogen = new Array(nLines[0].n);
-      hydrogen[0] = {};
-      hydrogen[0].wavelength = 656.3;   // line 1 wavelength
-      hydrogen[1] = {};
-      hydrogen[1].wavelength = 486.1;   // line 2 wavelength
-      hydrogen[2] = {};
-      hydrogen[2].wavelength = 434.0;   // line 3 wavelength
-      hydrogen[3] = {};
-      hydrogen[3].wavelength = 410.2;   // line 4 wavelength
+          i = 3;
+          spectrumData[i] = {};
+          spectrumData[i].name = "Mercury";
+          spectrumData[i].wavelength = [408, 435.8, 546.1, 577, 579.1];
 
-      var helium = new Array(nLines[1].n);
-      helium[0] = {};
-      helium[0].wavelength = 447.1;   // line 1 wavelength
-      helium[1] = {};
-      helium[1].wavelength = 471.3;   // line 2 wavelength
-      helium[2] = {};
-      helium[2].wavelength = 492.2;   // line 3 wavelength
-      helium[3] = {};
-      helium[3].wavelength = 501.6;   // line 4 wavelength
-      helium[4] = {};
-      helium[4].wavelength = 587.6;   // line 5 wavelength
-      helium[5] = {};
-      helium[5].wavelength = 667.8;   // line 6 wavelength
+          i = 4;
+          spectrumData[i] = {};
+          spectrumData[i].name = "Lithium";
+          spectrumData[i].wavelength = [468, 479, 548.4, 610.3, 670.8];
 
-      var sodium = new Array(nLines[2].n);
-      sodium[0] = {};
-      sodium[0].wavelength = 589;   // line 1 wavelength
-      sodium[1] = {};
-      sodium[1].wavelength = 589.6;   // line 2 wavelength
-      sodium[2] = {};
-      sodium[2].wavelength = 439.3;   // line 3 wavelength
-      sodium[3] = {};
-      sodium[3].wavelength = 445.5;   // line 4 wavelength
-      sodium[4] = {};
-      sodium[4].wavelength = 449.1;   // line 5 wavelength
+          i = 5;
+          spectrumData[i] = {};
+          spectrumData[i].name = "Neon";
+          spectrumData[i].wavelength = [540.1, 585.2, 588.2, 603, 607.4, 616.4, 621.7, 626.6, 633.4, 638.3, 640.2, 650.6, 659.9, 692.9];
+          
+          // to add more elements, just copy one of the blocks from above, update i, name, and wavelengths
 
-      var mercury = new Array(nLines[3].n);
-      mercury[0] = {};
-      mercury[0].wavelength = 435.8;   // line 1 wavelength
-      mercury[1] = {};
-      mercury[1].wavelength = 546.1;   // line 2 wavelength
-      mercury[2] = {};
-      mercury[2].wavelength = 577;   // line 3 wavelength
-      mercury[3] = {};
-      mercury[3].wavelength = 579.1;   // line 4 wavelength
-      mercury[4] = {};
-      mercury[4].wavelength = 408;   // line 5 wavelength
+          // set all elements to OFF for emission and absorption
+          for (var i = 0; i < spectrumData.length; i++) {
+              emissionOn[i] = 0;
+              absorptionOn[i] = 0;
+          }
 
-      var lithium = new Array(nLines[4].n);
-      lithium[0] = {};
-      lithium[0].wavelength = 548.4;   // line 1 wavelength
-      lithium[1] = {};
-      lithium[1].wavelength = 610.3;   // line 2 wavelength
-      lithium[2] = {};
-      lithium[2].wavelength = 670.8;   // line 3 wavelength
-      lithium[3] = {};
-      lithium[3].wavelength = 468;   // line 4 wavelength
-      lithium[4] = {};
-      lithium[4].wavelength = 479;   // line 5 wavelength
+          //console.log(spectrumData);
+          //console.log(emissionOn);
+      }
 
-      var neon = new Array(nLines[5].n);
-      neon[0] = {};
-      neon[0].wavelength = 540.1;   // line 1 wavelength
-      neon[1] = {};
-      neon[1].wavelength = 585.2;   // line 2 wavelength
-      neon[2] = {};
-      neon[2].wavelength = 588.2;   // line 3 wavelength
-      neon[3] = {};
-      neon[3].wavelength = 603;   // line 4 wavelength
-      neon[4] = {};
-      neon[4].wavelength = 607.4;   // line 5 wavelength
-      neon[5] = {};
-      neon[5].wavelength = 616.4;   // line 6 wavelength
-      neon[6] = {};
-      neon[6].wavelength = 621.7;   // line 7 wavelength
-      neon[7] = {};
-      neon[7].wavelength = 626.6;   // line 8 wavelength
-      neon[8] = {};
-      neon[8].wavelength = 633.4;   // line 9 wavelength
-      neon[9] = {};
-      neon[9].wavelength = 638.3;   // line 10 wavelength
-      neon[10] = {};
-      neon[10].wavelength = 640.2;   // line 11 wavelength
-      neon[11] = {};
-      neon[11].wavelength = 650.6;   // line 12 wavelength
-      neon[12] = {};
-      neon[12].wavelength = 659.9;   // line 13 wavelength
-      neon[13] = {};
-      neon[13].wavelength = 692.9;   // line 14 wavelength
-
-
-      initializeSpectra();
-
-    function initializeSpectra() {
+    function initializeDisplay() {
           // set background color for the entire thing
            context.fillStyle = "black";
            context.fillRect(0, 0, canvas.width, canvas.height);
@@ -171,30 +105,30 @@
           context.font = '14pt Calibri';
           context.fillStyle = "white";
 
-          yBase = 150;   // for the visible spectrum
+          yVisSpec = 150;   // for the visible spectrum
 
         // draw an axis
            context.beginPath();
-           context.moveTo(xBase, yBase);
-           context.lineTo(xBase+600, yBase);
+           context.moveTo(xBase, yVisSpec);
+           context.lineTo(xBase+600, yVisSpec);
            context.stroke();
  
          // draw and label the tick marks
 
          for (var i = 0; i <= 6; i++) {
            context.beginPath();
-           context.moveTo(xBase+i*100, yBase);
-           context.lineTo(xBase+i*100, yBase+10);
+           context.moveTo(xBase+i*100, yVisSpec);
+           context.lineTo(xBase+i*100, yVisSpec+10);
            context.stroke();
            context.textAlign = 'center';
            context.textBaseline = 'middle';
            var axisValue = 400+50*i;
            var axisLabel = axisValue.toFixed(0);
-           context.fillText(axisLabel, xBase+i*100, yBase+20);
+           context.fillText(axisLabel, xBase+i*100, yVisSpec+20);
 
           }
            context.font = '18pt Calibri';
-           context.fillText("Wavelength (nm)", 0.5*canvas.width, yBase+44);
+           context.fillText("Wavelength (nm)", 0.5*canvas.width, yVisSpec+44);
            context.fillText("The Visible Spectrum", 0.5*canvas.width, 50);
 
            context.lineWidth = 1;
@@ -205,12 +139,12 @@
            lineColor = getLineColor(wavelength);
            context.strokeStyle  = lineColor;
            context.beginPath();
-           context.moveTo(xBase+i, yBase);
-           context.lineTo(xBase+i, yBase-80);
+           context.moveTo(xBase+i, yVisSpec);
+           context.lineTo(xBase+i, yVisSpec-80);
            context.stroke();
           }
 
-            yBase = 355;
+          yBase = 355;
 
           context.lineWidth = 2;
           context.strokeStyle  = "white";
@@ -240,118 +174,81 @@
            context.font = '18pt Calibri';
            context.fillText("Wavelength (nm)", 0.5*canvas.width, yBase+44);
     
+
     }
       
-    function drawSpectra() {
+    function drawEmission() {
+        // streamlined version of plotting code from Andrew Duffy
+        
+        context.lineWidth = 3;
 
-  //    console.log("In the drawMotion function, with runFlag = " + runFlag );
-
-
-          // draw one of the emission spectra
-
-            context.lineWidth = 3;
-
-          if (elementChoice == 0){
-            //context.fillText("Hydrogen", 0.5*canvas.width, yBase-100);
-
-              for (var i = 0; i < nLines[elementChoice].n; i++) {
-              if (onH == 0) {
-                  lineColor = getLineColor(hydrogen[i].wavelength);
-              } else {
-                  lineColor = "black"
-              }                  
-              context.strokeStyle  = lineColor;
-              context.beginPath();
-              context.moveTo(xBase+2*(hydrogen[i].wavelength-400), yBase-2);
-              context.lineTo(xBase+2*(hydrogen[i].wavelength-400), yBase-80);
-              context.stroke();
-              }
-              if (onH == 0) {
-                  onH = 1;
-              } else {
-                  onH = 0;
-              }
-          }
-
-          if (elementChoice == 1){
-            //context.fillText("Helium", 0.5*canvas.width, yBase-100);
-
-            for (var i = 0; i < nLines[elementChoice].n; i++) {
-                if (onHe == 0) {
-                   lineColor = getLineColor(helium[i].wavelength);              
-                } else{
-                    lineColor = "black"
-                }
-             context.strokeStyle  = lineColor;
-             context.beginPath();
-             context.moveTo(xBase+2*(helium[i].wavelength-400), yBase-2);
-             context.lineTo(xBase+2*(helium[i].wavelength-400), yBase-80);
-             context.stroke();
+        spectrum = spectrumData[elementChoice].wavelength;
+        console.log(spectrum);
+        
+        for (var i = 0; i < spectrum.length; i++) {
+            if (emissionOn[elementChoice] == 0) {
+                lineColor = getLineColor(spectrum[i]);
+            } else {
+                lineColor = "black";
             }
-            if (onHe == 0) {
-                  onHe = 1;
-              } else {
-                  onHe = 0;
-              }
-
-          }
-
-          if (elementChoice == 2){
-            //context.fillText("Sodium", 0.5*canvas.width, yBase-100);
-
-            for (var i = 0; i < nLines[elementChoice].n; i++) {
-             lineColor = getLineColor(sodium[i].wavelength);
-             context.strokeStyle  = lineColor;
-             context.beginPath();
-             context.moveTo(xBase+2*(sodium[i].wavelength-400), yBase-2);
-             context.lineTo(xBase+2*(sodium[i].wavelength-400), yBase-80);
-             context.stroke();
-            }
-          }
-
-          if (elementChoice == 3){
-            //context.fillText("Mercury", 0.5*canvas.width, yBase-100);
-
-            for (var i = 0; i < nLines[elementChoice].n; i++) {
-             lineColor = getLineColor(mercury[i].wavelength);
-             context.strokeStyle  = lineColor;
-             context.beginPath();
-             context.moveTo(xBase+2*(mercury[i].wavelength-400), yBase-2);
-             context.lineTo(xBase+2*(mercury[i].wavelength-400), yBase-80);
-             context.stroke();
-            }
-          }
-
-          if (elementChoice == 4){
-            //context.fillText("Lithium", 0.5*canvas.width, yBase-100);
-
-            for (var i = 0; i < nLines[elementChoice].n; i++) {
-             lineColor = getLineColor(lithium[i].wavelength);
-             context.strokeStyle  = lineColor;
-             context.beginPath();
-             context.moveTo(xBase+2*(lithium[i].wavelength-400), yBase-2);
-             context.lineTo(xBase+2*(lithium[i].wavelength-400), yBase-80);
-             context.stroke();
-            }
-          }
-
-          if (elementChoice == 5){
-            //context.fillText("Neon", 0.5*canvas.width, yBase-100);
-
-            for (var i = 0; i < nLines[elementChoice].n; i++) {
-             lineColor = getLineColor(neon[i].wavelength);
-             context.strokeStyle  = lineColor;
-             context.beginPath();
-             context.moveTo(xBase+2*(neon[i].wavelength-400), yBase-2);
-             context.lineTo(xBase+2*(neon[i].wavelength-400), yBase-80);
-             context.stroke();
-            }
-          }
-
+            context.strokeStyle  = lineColor;
+            context.beginPath();
+            context.moveTo(xBase+2*(spectrum[i]-400), yBase-2);
+            context.lineTo(xBase+2*(spectrum[i]-400), yBase-80);
+            context.stroke();
+        }
+        
+        // change status of emissionOn to match drawing
+        if (emissionOn[elementChoice] == 0) {
+            emissionOn[elementChoice] = 1;
+        } else {
+            emissionOn[elementChoice] = 0;
+        }
 
     }
 
+    function drawAbsorption() {
+        // streamlined version of plotting code from Andrew Duffy
+        
+        spectrum = spectrumData[elementChoice].wavelength;
+        //console.log(spectrum);
+        
+        for (var i = 0; i < spectrum.length; i++) {
+            if (absorptionOn[elementChoice] == 0) {
+                context.lineWidth = 3;
+                lineColor = "black";
+                context.strokeStyle  = lineColor;
+                context.beginPath();
+                context.moveTo(xBase+2*(spectrum[i]-400), yVisSpec-2);
+                context.lineTo(xBase+2*(spectrum[i]-400), yVisSpec-80);
+                context.stroke();
+            } else {
+            context.lineWidth = 1;
+            for (var j = -1; j <= 1; j++) {
+               var wavelength = spectrum[i] + 0.5*j;
+               console.log(wavelength);
+               lineColor = getLineColor(wavelength);
+               context.strokeStyle  = lineColor;
+               context.beginPath();
+               context.moveTo(xBase+((wavelength - 400)*2), yVisSpec);
+               context.lineTo(xBase+((wavelength - 400)*2), yVisSpec-80);
+               context.stroke();
+          }
 
+            }
+            
+        }
+        
+        // change status of emissionOn to match drawing
+        if (absorptionOn[elementChoice] == 0) {
+            absorptionOn[elementChoice] = 1;
+        } else {
+            absorptionOn[elementChoice] = 0;
+        }
+
+    }
+      
+      
     function getLineColor(lambda) {
         // original routine from Andrew Duffy
         var redness = 0;
@@ -388,7 +285,7 @@
   could be a bit different from what is shown here. The visible spectrum is always shown as a reference.
 </p> --> 
 
-    <p> This is a quick proof of concept of adapting Andrew Duffy's code to make a full blown reimplementation of the original NAAP spectrum explorer.  </p>
+    <p> This is a quick proof of concept of adapting Andrew Duffy's code, on the way to making a full blown reimplementation of the original NAAP spectrum explorer.  </p>
     
     <p>Based on the <a href="http://physics.bu.edu/~duffy/HTML5/emission_spectra.html">Emission Spectra</a> Javascript simulation by Andrew Duffy and the NAAP project's <a href="https://astro.unl.edu/classaction/animations/light/spectrum010.html">Spectrum Explorer</a></p>
 
