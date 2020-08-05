@@ -11,22 +11,22 @@
     <canvas id="myCanvas" width="700" height="440"></canvas>
     <div id="emissionCheckboxes">Show emission spectrum for:
         <ul>
-            <li><input type="checkbox" id="Hspectra" value="Hydrogen" onclick="elementChoice = 0; drawEmission();"> Hydrogen</li>
-            <li><input type="checkbox" id="Hespectra" value="Helium" onclick="elementChoice = 1; drawEmission();">Helium</li>
-            <li><input type="checkbox" id="Lispectra" value="Lithium" onclick="elementChoice = 4; drawEmission();">Lithium</li>
-            <li><input type="checkbox" id="Naspectra" value="Sodium" onclick="elementChoice = 2; drawEmission();">Sodium</li>
-            <li><input type="checkbox" id="Hgspectra" value="Mercury" onclick="elementChoice = 3; drawEmission();">Mercury</li>
-            <li><input type="checkbox" id="Nespectra" value="Neon" onclick="elementChoice = 5; drawEmission();">Neon</li>
+            <li><input type="checkbox" id="Hspectra" value="Hydrogen" onclick="elementChoice = 0; updateEmission();"> Hydrogen</li>
+            <li><input type="checkbox" id="Hespectra" value="Helium" onclick="elementChoice = 1; updateEmission();">Helium</li>
+            <li><input type="checkbox" id="Lispectra" value="Lithium" onclick="elementChoice = 4; updateEmission();">Lithium</li>
+            <li><input type="checkbox" id="Naspectra" value="Sodium" onclick="elementChoice = 2; updateEmission();">Sodium</li>
+            <li><input type="checkbox" id="Hgspectra" value="Mercury" onclick="elementChoice = 3; updateEmission();">Mercury</li>
+            <li><input type="checkbox" id="Nespectra" value="Neon" onclick="elementChoice = 5; updateEmission();">Neon</li>
         </ul>
    </div>
     <div id="emissionCheckboxes">Show absorption spectrum for:
         <ul>
-            <li><input type="checkbox" id="Hspectra" value="Hydrogen" onclick="elementChoice = 0; drawAbsorption();"> Hydrogen</li>
-            <li><input type="checkbox" id="Hespectra" value="Helium" onclick="elementChoice = 1; drawAbsorption();">Helium</li>
-            <li><input type="checkbox" id="Lispectra" value="Lithium" onclick="elementChoice = 4; drawAbsorption();">Lithium</li>
-            <li><input type="checkbox" id="Naspectra" value="Sodium" onclick="elementChoice = 2; drawAbsorption();">Sodium</li>
-            <li><input type="checkbox" id="Hgspectra" value="Mercury" onclick="elementChoice = 3; drawAbsorption();">Mercury</li>
-            <li><input type="checkbox" id="Nespectra" value="Neon" onclick="elementChoice = 5; drawAbsorption();">Neon</li>
+            <li><input type="checkbox" id="Hspectra" value="Hydrogen" onclick="elementChoice = 0; updateAbsorption();"> Hydrogen</li>
+            <li><input type="checkbox" id="Hespectra" value="Helium" onclick="elementChoice = 1; updateAbsorption();">Helium</li>
+            <li><input type="checkbox" id="Lispectra" value="Lithium" onclick="elementChoice = 4; updateAbsorption();">Lithium</li>
+            <li><input type="checkbox" id="Naspectra" value="Sodium" onclick="elementChoice = 2; updateAbsorption();">Sodium</li>
+            <li><input type="checkbox" id="Hgspectra" value="Mercury" onclick="elementChoice = 3; updateAbsorption();">Mercury</li>
+            <li><input type="checkbox" id="Nespectra" value="Neon" onclick="elementChoice = 5; updateAbsorption();">Neon</li>
         </ul>
    </div>
 
@@ -37,8 +37,10 @@
       // Original code from Andrew Duffy
       var canvas = document.getElementById("myCanvas");
       var context = canvas.getContext("2d");
-      var xBase = 50;     // for the drawing
-      var yBase = 350;     // for the drawing
+      var xBase = 50;     // left edge of spectra 
+      var yBase = 350;     // y base for the emission spectra
+      var yVisSpec = 150;   // for the continuous spectrum
+
       var lineColor = 'red';
 
       // define global variables
@@ -50,7 +52,7 @@
       initializeSpectrumData();
       initializeDisplay();
       
-      function initializeSpectrumData(){
+    function initializeSpectrumData(){
           var nElements = 0;
                               
           var i = 0;
@@ -105,8 +107,6 @@
           context.font = '14pt Calibri';
           context.fillStyle = "white";
 
-          yVisSpec = 150;   // for the visible spectrum
-
         // draw an axis
            context.beginPath();
            context.moveTo(xBase, yVisSpec);
@@ -131,18 +131,7 @@
            context.fillText("Wavelength (nm)", 0.5*canvas.width, yVisSpec+44);
            context.fillText("The Visible Spectrum", 0.5*canvas.width, 50);
 
-           context.lineWidth = 1;
-
-         // wavelength from 400 to 700 nm, draw the visible spectrum
-         for (var i = 0; i <= 600; i++) {
-           var wavelength = 400 + 0.5*i;
-           lineColor = getLineColor(wavelength);
-           context.strokeStyle  = lineColor;
-           context.beginPath();
-           context.moveTo(xBase+i, yVisSpec);
-           context.lineTo(xBase+i, yVisSpec-80);
-           context.stroke();
-          }
+          drawVisible();
 
           yBase = 355;
 
@@ -177,77 +166,84 @@
 
     }
       
+    function drawVisible() {
+        context.fillStyle = "black";
+        context.fillRect(xBase, yVisSpec,600, -80);
+        context.lineWidth = 1;
+
+         // wavelength from 400 to 700 nm, draw the visible spectrum
+         for (var i = 0; i <= 600; i++) {
+           var wavelength = 400 + 0.5*i;
+           lineColor = getLineColor(wavelength);
+           context.strokeStyle  = lineColor;
+           context.beginPath();
+           context.moveTo(xBase+i, yVisSpec);
+           context.lineTo(xBase+i, yVisSpec-80);
+           context.stroke();
+          }
+
+    }
+      
     function drawEmission() {
-        // streamlined version of plotting code from Andrew Duffy
         
-        context.lineWidth = 3;
-
-        spectrum = spectrumData[elementChoice].wavelength;
-        console.log(spectrum);
-        
-        for (var i = 0; i < spectrum.length; i++) {
-            if (emissionOn[elementChoice] == 0) {
-                lineColor = getLineColor(spectrum[i]);
-            } else {
-                lineColor = "black";
+        context.fillStyle = "black";
+        context.fillRect(xBase, yBase,600, -80);
+    
+         for (var i = 0; i < emissionOn.length; i++) {
+            if (emissionOn[i] == 1) {
+                spectrum = spectrumData[i].wavelength;
+                for (var j = 0; j < spectrum.length; j++) {
+                    context.lineWidth = 3;
+                    lineColor = getLineColor(spectrum[j]);
+                    context.strokeStyle  = lineColor;
+                    context.beginPath();
+                    context.moveTo(xBase+2*(spectrum[j]-400), yBase-2);
+                    context.lineTo(xBase+2*(spectrum[j]-400), yBase-80);
+                    context.stroke();
+                } 
             }
-            context.strokeStyle  = lineColor;
-            context.beginPath();
-            context.moveTo(xBase+2*(spectrum[i]-400), yBase-2);
-            context.lineTo(xBase+2*(spectrum[i]-400), yBase-80);
-            context.stroke();
         }
-        
-        // change status of emissionOn to match drawing
-        if (emissionOn[elementChoice] == 0) {
-            emissionOn[elementChoice] = 1;
-        } else {
-            emissionOn[elementChoice] = 0;
-        }
-
     }
 
     function drawAbsorption() {
         // streamlined version of plotting code from Andrew Duffy
         
-        spectrum = spectrumData[elementChoice].wavelength;
-        //console.log(spectrum);
-        
-        for (var i = 0; i < spectrum.length; i++) {
-            if (absorptionOn[elementChoice] == 0) {
-                context.lineWidth = 3;
-                lineColor = "black";
-                context.strokeStyle  = lineColor;
-                context.beginPath();
-                context.moveTo(xBase+2*(spectrum[i]-400), yVisSpec-2);
-                context.lineTo(xBase+2*(spectrum[i]-400), yVisSpec-80);
-                context.stroke();
-            } else {
-            context.lineWidth = 1;
-            for (var j = -1; j <= 1; j++) {
-               var wavelength = spectrum[i] + 0.5*j;
-               console.log(wavelength);
-               lineColor = getLineColor(wavelength);
-               context.strokeStyle  = lineColor;
-               context.beginPath();
-               context.moveTo(xBase+((wavelength - 400)*2), yVisSpec);
-               context.lineTo(xBase+((wavelength - 400)*2), yVisSpec-80);
-               context.stroke();
-          }
-
+        for (var i = 0; i < absorptionOn.length; i++) {
+            if (absorptionOn[i] == 1) {
+                spectrum = spectrumData[i].wavelength;
+                for (var j = 0; j < spectrum.length; j++) {
+                    context.lineWidth = 3;
+                    lineColor = "black";
+                    context.strokeStyle  = lineColor;
+                    context.beginPath();
+                    context.moveTo(xBase+2*(spectrum[j]-400), yVisSpec-2);
+                    context.lineTo(xBase+2*(spectrum[j]-400), yVisSpec-80);
+                    context.stroke();
+                } 
             }
-            
         }
-        
-        // change status of emissionOn to match drawing
+    }
+
+    function updateAbsorption() {
         if (absorptionOn[elementChoice] == 0) {
             absorptionOn[elementChoice] = 1;
         } else {
             absorptionOn[elementChoice] = 0;
         }
-
+        
+        drawVisible();
+        drawAbsorption();
     }
-      
+        
+    function updateEmission() {
+        if (emissionOn[elementChoice] == 0) {
+            emissionOn[elementChoice] = 1;
+        } else {
+            emissionOn[elementChoice] = 0;
+        }
+        
+        drawEmission();
+    }
       
     function getLineColor(lambda) {
         // original routine from Andrew Duffy
